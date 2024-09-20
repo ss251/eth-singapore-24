@@ -3,6 +3,7 @@
 'use client'
 
 import { createWeb3Modal, defaultConfig } from '@web3modal/ethers/react'
+import { sepolia as wagmiSepolia } from 'wagmi/chains'
 
 // Your Reown Cloud project ID
 export const projectId = '6d8971954e64aacc52d257d357bbe44e'
@@ -14,6 +15,14 @@ const mainnet = {
   currency: 'ETH',
   explorerUrl: 'https://etherscan.io',
   rpcUrl: 'https://cloudflare-eth.com'
+}
+
+const sepolia = {
+  chainId: wagmiSepolia.id,
+  name: wagmiSepolia.name,
+  currency: wagmiSepolia.nativeCurrency.symbol,
+  explorerUrl: wagmiSepolia.blockExplorers.default.url,
+  rpcUrl: wagmiSepolia.rpcUrls.default.http[0]
 }
 
 // 3. Create a metadata object
@@ -40,7 +49,7 @@ const ethersConfig = defaultConfig({
 // 5. Create a Web3Modal instance
 createWeb3Modal({
   ethersConfig,
-  chains: [mainnet],
+  chains: [mainnet, sepolia],
   projectId,
   enableAnalytics: true, // Optional - defaults to your Cloud configuration
   enableOnramp: true // Optional - false as default
