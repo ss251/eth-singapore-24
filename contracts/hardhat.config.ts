@@ -33,7 +33,12 @@ const config: HardhatUserConfig = {
         },
         localhost: {
           url: "http://127.0.0.1:8545"
-        }
+        },
+        oasisTestnet: {
+          url: 'https://testnet.sapphire.oasis.dev',
+          chainId: 0x5aff, // Sapphire Testnet chain ID
+          accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        },
     },
     gasReporter: {
         enabled: process.env.REPORT_GAS !== undefined,

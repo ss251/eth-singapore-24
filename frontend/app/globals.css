@@ -1,33 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@300;400;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@font-face {
+  font-family: 'PT Root UI';
+  src: url('/fonts/PT-Root-UI_Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@font-face {
+  font-family: 'PT Root UI';
+  src: url('/fonts/PT-Root-UI_Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'PT Root UI', sans-serif;
+  background-color: theme('colors.nouns.bg');
+  color: theme('colors.nouns.text');
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.nouns-border {
+  @apply border-4 border-nouns-text;
 }
 
-@layer base {
-  :root {
-    --radius: 0.5rem;
-  }
+.nouns-button {
+  @apply bg-nouns-yellow text-nouns-text font-londrina font-bold py-2 px-4 rounded-lg nouns-border hover:bg-nouns-blue transition-colors duration-200;
 }

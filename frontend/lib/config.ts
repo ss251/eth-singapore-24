@@ -1,6 +1,6 @@
 import { defaultWagmiConfig } from '@web3modal/wagmi/react/config'
 import { cookieStorage, createStorage } from 'wagmi'
-import { baseSepolia, sepolia } from 'wagmi/chains'
+import { baseSepolia, sepolia, sapphireTestnet } from 'wagmi/chains'
 import { Chain } from 'wagmi/chains'
 
 // Add necessary networks
@@ -9,9 +9,9 @@ export const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID
 if (!projectId) throw new Error('NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID is not defined')
 
 export const metadata = {
-  name: 'Onboard Agent',
-  description: 'AI Powered Web3 Onboarding Agent',
-  url: 'https://onboardagent.vercel.app',
+  name: 'Real Votes',
+  description: 'Onchain sybil-resistant voting',
+  url: 'https://realvotes.vercel.app',
   icons: []
 }
 
@@ -34,7 +34,7 @@ export const hardhatLocalhost: Chain = {
   }
 
 // Create wagmiConfig
-export const chains = [baseSepolia, sepolia, hardhatLocalhost] as const // Include all supported chains
+export const chains = [baseSepolia, sepolia, sapphireTestnet, hardhatLocalhost] as const // Include all supported chains
 export const config = defaultWagmiConfig({
   chains,
   projectId,

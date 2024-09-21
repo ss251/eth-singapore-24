@@ -3,7 +3,7 @@
 'use client'
 
 import { createWeb3Modal, defaultConfig } from '@web3modal/ethers/react'
-import { sepolia as wagmiSepolia, baseSepolia as wagmiBaseSepolia, optimismSepolia as wagmiOptimismSepolia } from 'wagmi/chains'
+import { sepolia as wagmiSepolia, baseSepolia as wagmiBaseSepolia, optimismSepolia as wagmiOptimismSepolia, sapphireTestnet as wagmiSapphireTestnet } from 'wagmi/chains'
 import { hardhatLocalhost } from '../lib/config'
 // Your Reown Cloud project ID
 export const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || ''
@@ -49,6 +49,14 @@ const localhost = {
   rpcUrl: 'http://localhost:8545' 
 }
 
+const sapphireTestnet = {
+  chainId: wagmiSapphireTestnet.id,
+  name: wagmiSapphireTestnet.name,
+  currency: wagmiSapphireTestnet.nativeCurrency.symbol,
+  explorerUrl: wagmiSapphireTestnet.blockExplorers.default.url,
+  rpcUrl: wagmiSapphireTestnet.rpcUrls.default.http[0]
+}
+
 // 3. Create a metadata object
 const metadata = {
   name: 'eth-singapore-24',
@@ -73,7 +81,7 @@ const ethersConfig = defaultConfig({
 // 5. Create a Web3Modal instance
 createWeb3Modal({
   ethersConfig,
-  chains: [sepolia, baseSepolia, optimismSepolia, localhost],
+  chains: [sepolia, baseSepolia, optimismSepolia, localhost, sapphireTestnet],
   projectId,
   enableAnalytics: true, // Optional - defaults to your Cloud configuration
   enableOnramp: true // Optional - false as default

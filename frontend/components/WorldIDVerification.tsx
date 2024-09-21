@@ -10,10 +10,14 @@ const WorldIDVerification = () => {
     setIsVerified(true)
   }, [])
 
+  const handleVerificationChange = (verified: boolean) => {
+    setIsVerified(verified);
+  };
+
   return (
     <div>
       {!isVerified ? (
-        <WorldIDWidget onSuccess={handleSuccess} />
+        <WorldIDWidget onSuccess={handleSuccess} onVerificationChange={handleVerificationChange} />
       ) : (
         <div>You have been verified!</div>
       )}
