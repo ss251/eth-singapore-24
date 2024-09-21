@@ -1,6 +1,10 @@
 "use client";
 
-import { IDKitWidget, ISuccessResult, VerificationLevel } from "@worldcoin/idkit";
+import {
+  IDKitWidget,
+  ISuccessResult,
+  VerificationLevel,
+} from "@worldcoin/idkit";
 import { Eip1193Provider, ethers } from "ethers";
 import { OasisVerificationStorageAbi } from "../abi/OasisVerificationStorage";
 import { useAccount } from "wagmi";
@@ -16,87 +20,76 @@ interface Window {
   ethereum?: Eip1193Provider;
 }
 
-const WorldIDWidget = ({ onSuccess, onVerificationChange }: WorldIDWidgetProps) => {
+const WorldIDWidget = ({
+  onSuccess,
+  onVerificationChange,
+}: WorldIDWidgetProps) => {
   const { address } = useAccount();
   const [status, setStatus] = useState<
     "idle" | "verifying" | "storing" | "done" | "error"
   >("idle");
   const [message, setMessage] = useState("");
+  const { ethereum } = window as Window;
 
   const checkVerification = useCallback(async () => {
     if (!address) {
       console.log("No address available, skipping verification check");
       return false;
     }
-  
-    const storedNullifierHash = localStorage.getItem(`worldcoin_nullifier_${address}`);
-    if (!storedNullifierHash) {
-      console.log("No stored nullifier hash found for address:", address);
-      return false;
+
+    // Check local storage for the nullifier hash
+    const storedNullifierHash = localStorage.getItem(
+      `worldcoin_nullifier_${address}`
+    );
+    if (storedNullifierHash) {
+      console.log("User is verified locally");
+      return true;
     }
-  
-    const oasisStorageAddress = process.env.NEXT_PUBLIC_OASIS_VERIFICATION_STORAGE_ADDRESS;
+
+    const oasisStorageAddress =
+      process.env.NEXT_PUBLIC_OASIS_VERIFICATION_STORAGE_ADDRESS;
     const oasisStorageABI = OasisVerificationStorageAbi.abi;
     const rpcUrl = process.env.NEXT_PUBLIC_OASIS_RPC_URL;
-  
+
     if (!oasisStorageAddress || !rpcUrl) {
       console.error("Missing environment variables");
       return false;
     }
-  
+
     try {
       console.log("Connecting to RPC URL:", rpcUrl);
       const provider = new ethers.JsonRpcProvider(rpcUrl);
-  
-      const network = await provider.getNetwork();
-      console.log("Connected to network:", network.name, "Chain ID:", network.chainId.toString());
-  
-      if (network.chainId !== BigInt(sapphireTestnet.id)) {
-        throw new Error(`Connected to wrong network. Expected chain ID ${sapphireTestnet.id}, got ${network.chainId}`);
-      }
-  
-      console.log("Creating contract instance at address:", oasisStorageAddress);
+
       const oasisStorageContract = new ethers.Contract(
         oasisStorageAddress,
         oasisStorageABI,
         provider
       );
-  
-      const nullifierHashBigInt = BigInt(storedNullifierHash);
-      console.log("Checking for nullifier hash:", nullifierHashBigInt.toString());
-  
-      const latestBlock = await provider.getBlockNumber();
-      console.log("Latest block number:", latestBlock);
-  
-      // Query only the last 1000 blocks or less
-      const fromBlock = Math.max(0, latestBlock - 100);
-      console.log(`Querying for VerificationStored events from block ${fromBlock} to ${latestBlock}`);
-  
-      const filter = oasisStorageContract.filters.VerificationStored(nullifierHashBigInt, address);
-      const events = await oasisStorageContract.queryFilter(filter, fromBlock, latestBlock);
-  
-      const isVerified = events.length > 0;
-      console.log("Verification events found:", events.length);
-      console.log("Is verified:", isVerified);
-  
-      if (isVerified && events[0]) {
-        console.log("Verification event details:", {
-          blockNumber: events[0].blockNumber,
-          transactionHash: events[0].transactionHash,
-        });
+
+      // Call getVerificationStatus(address)
+      const isVerified = await oasisStorageContract.getVerificationStatus(
+        address
+      );
+      console.log("On-chain verification status:", isVerified);
+
+      if (isVerified) {
+        // Optionally, get and store the nullifier hash
+        const nullifierHash = await oasisStorageContract.getNullifierHash(
+          address
+        );
+        localStorage.setItem(
+          `worldcoin_nullifier_${address}`,
+          nullifierHash.toString()
+        );
       }
-  
+
       return isVerified;
     } catch (error) {
       console.error("Error checking stored verification:", error);
-      if (error instanceof Error) {
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-      }
       return false;
     }
   }, [address]);
-  
+
   useEffect(() => {
     const verifyStatus = async () => {
       try {
@@ -112,12 +105,12 @@ const WorldIDWidget = ({ onSuccess, onVerificationChange }: WorldIDWidgetProps) 
         }
       } catch (error) {
         console.error("Verification check failed:", error);
-        setStatus("idle"); // Set to idle instead of error to allow retrying
+        setStatus("idle"); // Set to idle to allow retrying
         setMessage("Verification status unknown. Please try verifying.");
         onVerificationChange(false);
       }
     };
-  
+
     verifyStatus();
   }, [address, checkVerification, onSuccess, onVerificationChange]);
 
@@ -125,64 +118,76 @@ const WorldIDWidget = ({ onSuccess, onVerificationChange }: WorldIDWidgetProps) 
     async (result: ISuccessResult) => {
       console.log("World ID proof received:", result);
       setStatus("verifying");
-      const oasisStorageAddress = process.env.NEXT_PUBLIC_OASIS_VERIFICATION_STORAGE_ADDRESS;
+      const oasisStorageAddress =
+        process.env.NEXT_PUBLIC_OASIS_VERIFICATION_STORAGE_ADDRESS;
       const oasisStorageABI = OasisVerificationStorageAbi.abi;
-  
+
       if (!oasisStorageAddress) {
         console.error("Oasis storage address is not defined");
         setMessage("Oasis storage address is not defined");
         setStatus("error");
         return;
       }
-  
-      const { ethereum } = window as Window;
+
       if (!ethereum) {
         console.error("Ethereum provider not found");
         setMessage("Ethereum provider not found");
         setStatus("error");
         return;
       }
-  
+
       try {
+        if (!ethereum) {
+          throw new Error("Ethereum provider not found");
+        }
         console.log("Creating BrowserProvider...");
         const provider = new ethers.BrowserProvider(ethereum);
         await provider.send("eth_requestAccounts", []);
         const signer = await provider.getSigner();
         console.log("Signer address:", await signer.getAddress());
-  
+
         const network = await provider.getNetwork();
         if (network.chainId !== BigInt(sapphireTestnet.id)) {
           console.error("Wrong network. Expected Oasis Sapphire Testnet.");
-          setMessage("Please switch to the Oasis Sapphire Testnet in your wallet");
+          setMessage(
+            "Please switch to the Oasis Sapphire Testnet in your wallet"
+          );
           setStatus("error");
           return;
         }
-  
+
         setStatus("storing");
-  
+
         const oasisStorageContract = new ethers.Contract(
           oasisStorageAddress,
           oasisStorageABI,
           signer
         );
-  
+
         const nullifierHashBigInt = BigInt(result.nullifier_hash);
         console.log("Nullifier hash (BigInt):", nullifierHashBigInt.toString());
-  
-        const storeTx = await oasisStorageContract.storeVerification(nullifierHashBigInt);
-        console.log("Transaction sent:", storeTx.hash);
-        const receipt = await storeTx.wait();
+
+        const tx = await oasisStorageContract.storeVerification(
+          nullifierHashBigInt
+        );
+        console.log("Transaction sent:", tx.hash);
+        const receipt = await tx.wait();
         console.log("Transaction confirmed:", receipt);
-  
-        localStorage.setItem(`worldcoin_nullifier_${address}`, result.nullifier_hash);
-  
+
+        localStorage.setItem(
+          `worldcoin_nullifier_${address}`,
+          result.nullifier_hash
+        );
+
         setStatus("done");
         setMessage("Verification stored on Oasis network.");
         onVerificationChange(true);
         onSuccess();
       } catch (error) {
         console.error("Error during verification or storage:", error);
-        setMessage(error instanceof Error ? error.message : "An unknown error occurred.");
+        setMessage(
+          error instanceof Error ? error.message : "An unknown error occurred."
+        );
         setStatus("error");
         onVerificationChange(false);
       }
@@ -213,9 +218,15 @@ const WorldIDWidget = ({ onSuccess, onVerificationChange }: WorldIDWidgetProps) 
           )}
         </IDKitWidget>
       )}
-      {status === "verifying" && <p className="text-xl">Verifying your World ID...</p>}
-      {status === "storing" && <p className="text-xl">Storing verification on Oasis network...</p>}
-      {status === "error" && <p className="text-xl text-nouns-accent">{message}</p>}
+      {status === "verifying" && (
+        <p className="text-xl">Verifying your World ID...</p>
+      )}
+      {status === "storing" && (
+        <p className="text-xl">Storing verification on Oasis network...</p>
+      )}
+      {status === "error" && (
+        <p className="text-xl text-nouns-accent">{message}</p>
+      )}
     </div>
   );
 };

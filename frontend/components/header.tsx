@@ -1,13 +1,29 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
 import { useAccount } from 'wagmi'
 import { NounImage } from './NounImage'
+import Link from 'next/link'
+import { checkWorldIDVerification } from '@/utils/worldID' // Assume this utility exists
 
 export function Header() {
   const { open } = useWeb3Modal()
   const { isConnected, address } = useAccount()
+  const [isVerified, setIsVerified] = useState(false)
+
+  useEffect(() => {
+    const verifyWorldID = async () => {
+      if (address) {
+        const verified = await checkWorldIDVerification(address)
+        setIsVerified(verified)
+      } else {
+        setIsVerified(false)
+      }
+    }
+    verifyWorldID()
+  }, [address])
 
   return (
     <header className="bg-nouns-bg text-nouns-text p-4 nouns-border">
@@ -18,7 +34,9 @@ export function Header() {
           transition={{ duration: 0.5 }}
           className="flex items-center space-x-4"
         >
-          <span className="text-4xl font-londrina font-bold">RealVotes</span>
+          <Link href="/">
+            <span className="text-4xl font-londrina font-bold">RealVotes</span>
+          </Link>
           <NounImage width={48} height={48} address={address} />
         </motion.div>
 
@@ -26,13 +44,39 @@ export function Header() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex items-center space-x-4"
         >
-          <button
-            onClick={() => open()}
-            className="nouns-button text-xl px-6 py-2"
-          >
-            {isConnected ? 'Connected' : 'Connect Wallet'}
-          </button>
+          {!isConnected ? (
+            <button
+              onClick={() => open()}
+              className="nouns-button text-xl px-6 py-2"
+            >
+              Connect Wallet
+            </button>
+          ) : (
+            <>
+              {isVerified ? (
+                <>
+                  <Link href="/create" className="text-nouns-text hover:text-white">
+                    Create Proposal
+                  </Link>
+                  <Link href="/proposals" className="text-nouns-text hover:text-white">
+                    View Proposals
+                  </Link>
+                </>
+              ) : (
+                <>
+                  
+                </>
+              )}
+              <button
+                onClick={() => open()}
+                className="nouns-button text-xl px-6 py-2"
+              >
+                {isConnected ? 'Connected' : 'Connect Wallet'}
+              </button>
+            </>
+          )}
         </motion.div>
       </div>
     </header>
