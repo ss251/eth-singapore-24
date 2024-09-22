@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { VotingSection } from '@/components/VotingSection'
 import { useAccount } from 'wagmi'
 import WorldIDWidget from '@/components/WorldIDWidget'
-import Image from 'next/image'
+import { NounImage } from '@/components/NounImage'
 
 const HomePage = () => {
   const { address, isConnected } = useAccount()
@@ -42,7 +42,7 @@ const HomePage = () => {
       >
         <h1 className="text-6xl font-londrina font-bold text-nouns-text mr-4">RealVotes</h1>
         {nounSrc && (
-          <Image src={nounSrc} alt="Random Noun" width={64} height={64} className="rounded-lg" />
+          <NounImage nounSeed={nounSrc} width={64} height={64} />
         )}
       </motion.div>
       
