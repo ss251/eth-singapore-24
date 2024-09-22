@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 import { ImageData, getNounData } from '@nouns/assets'
 import { buildSVG } from '@nouns/sdk'
