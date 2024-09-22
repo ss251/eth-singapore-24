@@ -19,7 +19,6 @@ function CreateProposal() {
   const [creatingProposal, setCreatingProposal] = useState(false)
   const [votingResult, setVotingResult] = useState<string | null>(null)
   const router = useRouter()
-  const { ethereum } = window as Window;
 
   const handleCreateProposal = async () => {
     const { title, description, options, nounSeed } = newProposal
@@ -36,10 +35,11 @@ function CreateProposal() {
 
     setCreatingProposal(true)
     try {
+      const { ethereum } = window as Window as { ethereum?: Eip1193Provider }
       if (!ethereum) {
         throw new Error('Ethereum provider not found')
       }
-      const provider = new ethers.BrowserProvider(ethereum);
+      const provider = new ethers.BrowserProvider(ethereum)
       await provider.send('eth_requestAccounts', [])
       const signer = await provider.getSigner()
       const contract = new ethers.Contract(

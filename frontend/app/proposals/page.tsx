@@ -24,7 +24,10 @@ function ProposalsList() {
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null)
   const [isVoting, setIsVoting] = useState(false)
   const [votingResult, setVotingResult] = useState<string | null>(null)
-  const { ethereum } = window as Window;
+
+  useEffect(() => {
+    fetchProposals()
+  }, [])
 
   const fetchProposals = async () => {
     try {
@@ -53,16 +56,13 @@ function ProposalsList() {
     }
   }
 
-  useEffect(() => {
-    fetchProposals()
-  }, [])
-
   const handleVote = async () => {
     if (selectedProposalId === null || selectedOptionIndex === null) return
 
     setIsVoting(true)
     setVotingResult(null)
     try {
+      const { ethereum } = window as Window as { ethereum?: Eip1193Provider }
       if (!ethereum) {
         throw new Error('Ethereum provider not found')
       }
