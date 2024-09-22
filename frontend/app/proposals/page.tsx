@@ -18,7 +18,7 @@ interface Window {
   ethereum?: Eip1193Provider
 }
 
-export function ProposalsList() {
+function ProposalsList() {
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [selectedProposalId, setSelectedProposalId] = useState<number | null>(null)
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null)
@@ -139,4 +139,4 @@ export function ProposalsList() {
   )
 }
 
-export default ProposalsList
+export default ProposalsList;

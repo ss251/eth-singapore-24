@@ -9,7 +9,7 @@ interface Window {
     ethereum?: Eip1193Provider;
 }
 
-export function CreateProposal() {
+function CreateProposal() {
   const [newProposal, setNewProposal] = useState({
     title: '',
     description: '',
@@ -122,4 +122,4 @@ export function CreateProposal() {
   )
 }
 
-export default CreateProposal
+export default CreateProposal;
